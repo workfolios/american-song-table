@@ -31,7 +31,7 @@ Vite writes the deployable site to `dist/`. The configuration uses fully relativ
 
 ## GitHub Pages Deployment
 
-The workflow at `.github/workflows/deploy-pages.yml` builds and deploys the site whenever `main` changes. In repository settings, select **Settings → Pages → Build and deployment → Source → GitHub Actions**.
+The repository is configured to publish through GitHub Actions. The workflow at `.github/workflows/deploy-pages.yml` builds and deploys the site whenever `main` changes.
 
 The workflow:
 
