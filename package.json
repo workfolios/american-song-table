@@ -1,0 +1,19 @@
+{
+  "name": "american-song-table",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port=3000 --host=0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist",
+    "lint": "echo 'No TS code to lint'"
+  },
+  "dependencies": {
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.2"
+  }
+}

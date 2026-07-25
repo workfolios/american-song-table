@@ -1,0 +1,10 @@
+d7b49bfe7aadd8fb44900d2da300f529f0409f9747956483a6b79617c1c0fa7c  assets/images/editorial/american-song-table-editorial-end-mark.png
+6c4fc6c4a447f5ba753cf542548435a1a975f57a2c0fb85b214b33a32da773d0  assets/images/editorial/american-song-table-masthead.png
+c780efd89fae44db7bcdccfdb6d25bb41383a1b3c5d76439664cf49ab3d410ce  assets/images/editorial/american-song-table-masthead.svg
+80aacebf664dca8e04e121565b330012cd78a911641b3afabbf3f72306efd48e  assets/images/editorial/karen-profile-editorial-final.png
+8bab8dd30eb6929e2279aab70e880a4a341aa74c7fb12bfba5097b61122bbdbd  public/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
+fc578dbb53445fa692f8e2c995659f4382caec955cc04fef1e76aedccbc7d2b2  public/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+37e0b050c0c486046ee97b27cd5602c4599091473f5871460133f76c6787fe67  public/assets/media/audio/american-song-table-summer-2026-issue-article-narration.mp3
+5e7248a3372ffd9fc56fd3cca8d2d14b026d8406c8477ca1ff0b4a5a4b42db96  public/assets/media/audio/the-room-beside-you-still-starlight-version.mp3
+4de2e4e4b1d181cea5148231b1f163e773c15a5b96c9c2ec533e4b97ed864fa1  public/assets/media/audio/the-room-beside-you.mp3
+5f411bbc9464ef9448d8510ec2ec4f0fb9253f0db6b4d4a5ccdbb6db99fc23b5  public/assets/media/video/the-room-beside-you-still-starlight-version-lake-byron-visualization.mp4
