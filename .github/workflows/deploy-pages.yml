@@ -63,6 +63,9 @@ jobs:
       - name: Build production site
         run: npm run build
 
+      - name: Inject social preview metadata
+        run: node scripts/inject-social-metadata.mjs
+
       - name: Verify built publication assets
         shell: bash
         run: |
@@ -70,6 +73,8 @@ jobs:
           test -s dist/assets/images/editorial/american-song-table-summer-2026.jpg
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+          grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
+          grep --fixed-strings --quiet 'property="og:image"' dist/index.html
 
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
