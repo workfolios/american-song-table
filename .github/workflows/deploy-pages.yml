@@ -49,17 +49,38 @@ jobs:
           d01f60e78388cdd22f30b8107072e8c187095ba767f20892edfb0c5158f28486  .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
           CHECKSUMS
 
-          mkdir -p public/assets/downloads/lead-sheet
+          mkdir -p public/assets/downloads/lead-sheet/mobile-images
           cp .github/workflows/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf \
             public/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           cp .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip \
             public/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+
+          unzip -p .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip \
+            'the-room-beside-you-lyric-lead-sheet-mobile-images/the-room-beside-you-lyric-lead-sheet-cover.jpg' \
+            > public/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyric-lead-sheet-cover.jpg
+
+          unzip -p .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip \
+            'the-room-beside-you-lyric-lead-sheet-mobile-images/the-room-beside-you-lyrics-page-01.jpg' \
+            > public/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-01.jpg
+
+          unzip -p .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip \
+            'the-room-beside-you-lyric-lead-sheet-mobile-images/the-room-beside-you-lyrics-page-02.jpg' \
+            > public/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
+
+          cat <<'IMAGE_CHECKSUMS' | sha256sum --check --strict
+          d8681662923e8b25188fa44f4acfbc45a2c083f1b66db036f69f9d4c5d586fda  public/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyric-lead-sheet-cover.jpg
+          ccc07ef5d75f20c0ac77c1a735391b36ba04fc8c482c543204d6c02bf0eda31b  public/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-01.jpg
+          fcb28ac54f864d7d2746c14a144000d2b8d9e450ea242095a983fcb80092e476  public/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
+          IMAGE_CHECKSUMS
 
       - name: Build production site
         run: npm run build
 
       - name: Inject social preview metadata
         run: node scripts/inject-social-metadata.mjs
+
+      - name: Inject mobile lead sheet actions
+        run: node scripts/inject-mobile-lead-sheet-actions.mjs
 
       - name: Verify built publication assets
         shell: bash
@@ -68,8 +89,15 @@ jobs:
           test -s dist/assets/media/american-song-table-summer-2026.jpg
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+          test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyric-lead-sheet-cover.jpg
+          test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-01.jpg
+          test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
+          test -s dist/mobile-lead-sheet/index.html
           grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
           grep --fixed-strings --quiet 'property="og:image"' dist/index.html
+          grep --fixed-strings --quiet 'View Mobile Image Set' dist/index.html
+          grep --fixed-strings --quiet 'Download All Mobile Images (.ZIP)' dist/index.html
+          grep --fixed-strings --quiet 'the-room-beside-you-lyrics-page-02.jpg' dist/mobile-lead-sheet/index.html
 
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
