@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,7 +15,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: github-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,18 +34,55 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Validate and stage publication assets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -s public/assets/media/american-song-table-summer-2026.jpg
+          test -s .github/workflows/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
+          test -s .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+
+          cat <<'CHECKSUMS' | sha256sum --check --strict
+          8ff177be64cd6b4960e487c778933044684a747601c494f8a2e254d2f81d78a8  public/assets/media/american-song-table-summer-2026.jpg
+          8bab8dd30eb6929e2279aab70e880a4a341aa74c7fb12bfba5097b61122bbdbd  .github/workflows/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
+          d01f60e78388cdd22f30b8107072e8c187095ba767f20892edfb0c5158f28486  .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+          CHECKSUMS
+
+          mkdir -p public/assets/downloads/lead-sheet
+          cp .github/workflows/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf \
+            public/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
+          cp .github/workflows/the-room-beside-you-lyric-lead-sheet-mobile-images.zip \
+            public/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+
       - name: Build production site
         run: npm run build
 
+      - name: Inject social preview metadata
+        run: node scripts/inject-social-metadata.mjs
+
+      - name: Verify built publication assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/assets/media/american-song-table-summer-2026.jpg
+          test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
+          test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
+          grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
+          grep --fixed-strings --quiet 'property="og:image"' dist/index.html
+
       - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Upload GitHub Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
