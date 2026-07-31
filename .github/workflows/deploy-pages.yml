@@ -86,6 +86,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          PRIMARY_CSS="$(find dist/assets -maxdepth 1 -type f -name 'index-*.css' -print -quit)"
+          test -n "$PRIMARY_CSS"
+          test -s "$PRIMARY_CSS"
+
           test -s dist/assets/media/american-song-table-summer-2026.jpg
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
@@ -93,11 +98,33 @@ jobs:
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-01.jpg
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
           test -s dist/mobile-lead-sheet/index.html
+
           grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
           grep --fixed-strings --quiet 'property="og:image"' dist/index.html
           grep --fixed-strings --quiet 'View Mobile Image Set' dist/index.html
           grep --fixed-strings --quiet 'Download All Mobile Images (.ZIP)' dist/index.html
           grep --fixed-strings --quiet 'the-room-beside-you-lyrics-page-02.jpg' dist/mobile-lead-sheet/index.html
+
+      - name: Install browser QA dependencies
+        run: npm install --no-save --no-package-lock @playwright/test@1.59.1 axe-core@4.11.4
+
+      - name: Install Chromium for browser QA
+        run: npx playwright install --with-deps chromium
+
+      - name: Run blocking browser QA guardrails
+        run: npx playwright test --config=qa/playwright.config.mjs
+
+      - name: Upload browser QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+            qa-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
