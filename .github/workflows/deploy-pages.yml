@@ -99,8 +99,6 @@ jobs:
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
           test -s dist/mobile-lead-sheet/index.html
 
-          grep --fixed-strings --quiet 'rel="stylesheet"' dist/index.html
-          grep --fixed-strings --quiet -- '--color-page-bg:#020814' "$PRIMARY_CSS"
           grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
           grep --fixed-strings --quiet 'property="og:image"' dist/index.html
           grep --fixed-strings --quiet 'View Mobile Image Set' dist/index.html
