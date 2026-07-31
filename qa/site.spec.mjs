@@ -43,8 +43,12 @@ async function expectResource(request, url, expectedTypes, minimumBytes = 1) {
 test('approved styling renders and the page does not fall back to unstyled HTML', async ({page, request}, testInfo) => {
   const localRequestFailures = [];
   page.on('requestfailed', (failedRequest) => {
-    if (failedRequest.url().startsWith('http://127.0.0.1:4173/')) {
-      localRequestFailures.push(`${failedRequest.method()} ${failedRequest.url()}`);
+    const url = failedRequest.url();
+    const isLocal = url.startsWith('http://127.0.0.1:4173/');
+    const isExpectedAudioPreloadCancellation = url.includes('/assets/media/audio/');
+
+    if (isLocal && !isExpectedAudioPreloadCancellation) {
+      localRequestFailures.push(`${failedRequest.method()} ${url}`);
     }
   });
 
@@ -95,6 +99,19 @@ test('approved styling renders and the page does not fall back to unstyled HTML'
   await expectImageLoaded(page.locator('.masthead-img'));
   await expectImageLoaded(page.locator('.hero-profile-img'));
 
+  const audioSources = await page.locator('audio source[src]').evaluateAll((sources) =>
+    sources.map((source) => source.getAttribute('src')).filter(Boolean),
+  );
+  expect(audioSources.length).toBeGreaterThanOrEqual(3);
+  for (const audioSource of audioSources) {
+    await expectResource(
+      request,
+      new URL(audioSource, page.url()).toString(),
+      ['audio/mpeg', 'audio/mp3', 'application/octet-stream'],
+      100_000,
+    );
+  }
+
   const projectName = testInfo.project.name;
   await page.screenshot({
     path: evidencePath('screenshots', `${projectName}-opening.png`),
@@ -120,6 +137,7 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
   expect(pdfHref).toBeTruthy();
   expect(viewerHref).toBeTruthy();
   expect(zipHref).toBeTruthy();
+  expect(viewerHref).toBe('mobile-lead-sheet/');
 
   await expectResource(request, new URL(pdfHref, page.url()).toString(), 'application/pdf', 100_000);
   await expectResource(
@@ -129,8 +147,10 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
     100_000,
   );
 
-  await page.goto(viewerHref, {waitUntil: 'networkidle'});
-  await expect(page.getByRole('heading', {name: /Mobile Image Set/i})).toBeVisible();
+  await page.goto('/mobile-lead-sheet/', {waitUntil: 'networkidle'});
+  await expect(page).toHaveTitle(/Mobile Lead Sheet/i);
+  await expect(page.locator('main#lead-sheet-pages')).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'The Room Beside You'})).toBeVisible();
 
   const viewerImages = page.locator('main img');
   await expect(viewerImages).toHaveCount(3);
@@ -138,11 +158,13 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
     await expectImageLoaded(viewerImages.nth(index));
   }
 
-  const overflow = await page.evaluate(() => ({
+  const viewerRendering = await page.evaluate(() => ({
+    background: getComputedStyle(document.body).backgroundColor,
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
   }));
-  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth + 1);
+  expect(viewerRendering.background).toBe('rgb(2, 8, 20)');
+  expect(viewerRendering.scrollWidth).toBeLessThanOrEqual(viewerRendering.clientWidth + 1);
 
   await page.screenshot({
     path: evidencePath('screenshots', `${testInfo.project.name}-mobile-lead-sheet.png`),
