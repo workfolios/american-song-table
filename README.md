@@ -31,15 +31,42 @@ Vite writes the deployable site to `dist/`. The configuration uses fully relativ
 
 ## GitHub Pages Deployment
 
-The repository is configured to publish through GitHub Actions. The workflow at `.github/workflows/deploy-pages.yml` builds and deploys the site whenever `main` changes.
+The repository is configured to validate pull requests and publish through GitHub Actions. The workflow at `.github/workflows/deploy-pages.yml` runs whenever `main` changes, when a pull request targets `main`, or when an authorized maintainer starts it manually.
 
 The workflow:
 
 1. Checks out the repository.
-2. Installs the locked npm dependencies.
-3. Runs the Vite production build.
-4. Uploads `dist/` as the Pages artifact.
-5. Deploys the artifact to the `github-pages` environment.
+2. Installs the locked application dependencies.
+3. Validates the approved publication assets and checksums.
+4. Stages the PDF, ZIP, and extracted mobile lead-sheet JPG pages.
+5. Runs the Vite production build.
+6. Injects the approved social-preview metadata.
+7. Injects the approved mobile lead-sheet actions and viewer.
+8. Verifies the required production files and copy markers.
+9. Runs blocking Playwright browser QA in desktop, tablet, and mobile viewports.
+10. Verifies stylesheet delivery, approved computed styling, responsive overflow, imagery, MP3s, downloads, mobile-viewer assets, keyboard access, and critical axe-core accessibility results.
+11. Uploads screenshots, reports, traces, videos, and accessibility evidence for 90 days.
+12. Uploads and deploys `dist/` to the `github-pages` environment only after the complete build job succeeds.
+
+Pull-request runs validate the deployable artifact but do not publish it.
+
+## Production Baseline And Maintenance
+
+The controlling project-specific production baseline and maintenance runbook is:
+
+[`docs/AMERICAN-SONG-TABLE-PRODUCTION-BASELINE.md`](docs/AMERICAN-SONG-TABLE-PRODUCTION-BASELINE.md)
+
+The approved recovery reference is:
+
+`baseline/approved-production-2026-07-31`
+
+The website is in stable production maintenance. Visual or content changes require explicit project-owner authorization, responsive evidence review, a stated rollback target, and successful blocking QA before merge.
+
+## Pull Request Governance
+
+`.github/pull_request_template.md` provides the required scope, protected-asset, QA-evidence, authorization, rollback, and residual-risk checklist for future changes.
+
+A production deployment must not be used as the preview environment for an unapproved visual experiment.
 
 ## Publication Boundary
 

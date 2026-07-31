@@ -124,7 +124,7 @@ jobs:
             test-results/
             qa-artifacts/
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 90
 
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
