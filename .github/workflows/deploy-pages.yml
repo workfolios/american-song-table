@@ -86,7 +86,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s dist/styles.css
+
+          PRIMARY_CSS="$(find dist/assets -maxdepth 1 -type f -name 'index-*.css' -print -quit)"
+          test -n "$PRIMARY_CSS"
+          test -s "$PRIMARY_CSS"
+
           test -s dist/assets/media/american-song-table-summer-2026.jpg
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
@@ -94,8 +98,9 @@ jobs:
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-01.jpg
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
           test -s dist/mobile-lead-sheet/index.html
-          grep --fixed-strings --quiet 'href="styles.css"' dist/index.html
-          grep --fixed-strings --quiet '--color-page-bg: #020814' dist/styles.css
+
+          grep --fixed-strings --quiet 'rel="stylesheet"' dist/index.html
+          grep --fixed-strings --quiet -- '--color-page-bg:#020814' "$PRIMARY_CSS"
           grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
           grep --fixed-strings --quiet 'property="og:image"' dist/index.html
           grep --fixed-strings --quiet 'View Mobile Image Set' dist/index.html
