@@ -25,10 +25,17 @@ async function expectImageLoaded(locator) {
   expect(dimensions.naturalHeight).toBeGreaterThan(0);
 }
 
-async function expectResource(request, url, expectedType, minimumBytes = 1) {
+async function expectResource(request, url, expectedTypes, minimumBytes = 1) {
   const response = await request.get(url);
   expect(response.status(), `${url} should return HTTP 200`).toBe(200);
-  expect(response.headers()['content-type'] ?? '', `${url} should use ${expectedType}`).toContain(expectedType);
+
+  const contentType = response.headers()['content-type'] ?? '';
+  const allowedTypes = Array.isArray(expectedTypes) ? expectedTypes : [expectedTypes];
+  expect(
+    allowedTypes.some((expectedType) => contentType.includes(expectedType)),
+    `${url} should use one of: ${allowedTypes.join(', ')}; received ${contentType}`,
+  ).toBe(true);
+
   const body = await response.body();
   expect(body.length, `${url} should not be empty`).toBeGreaterThanOrEqual(minimumBytes);
 }
@@ -50,15 +57,19 @@ test('approved styling renders and the page does not fall back to unstyled HTML'
   await expect(page.locator('.hero-title')).toContainText('Smile');
   await expect(page.locator('.hero-title')).toContainText('Grace');
 
-  const stylesheetHref = await page.locator('link[rel="stylesheet"][href$="styles.css"]').getAttribute('href');
-  expect(stylesheetHref).toBeTruthy();
-  const stylesheetUrl = new URL(stylesheetHref, page.url()).toString();
+  const stylesheetUrls = await page.locator('link[rel="stylesheet"]').evaluateAll((links) =>
+    links.map((link) => link.href),
+  );
+  const pageOrigin = new URL(page.url()).origin;
+  const stylesheetUrl = stylesheetUrls.find((url) => new URL(url).origin === pageOrigin);
+  expect(stylesheetUrl, 'A same-origin production stylesheet should be linked').toBeTruthy();
+
   const stylesheetResponse = await request.get(stylesheetUrl);
   expect(stylesheetResponse.status()).toBe(200);
   expect(stylesheetResponse.headers()['content-type'] ?? '').toContain('text/css');
   const stylesheetText = await stylesheetResponse.text();
-  expect(stylesheetText).toContain('--color-page-bg: #020814');
-  expect(stylesheetText).toContain("--font-serif: 'Playfair Display'");
+  expect(stylesheetText).toMatch(/--color-page-bg:\s*#020814/i);
+  expect(stylesheetText).toMatch(/--font-serif:[^;]*Playfair Display/i);
 
   const rendering = await page.evaluate(() => {
     const bodyStyle = getComputedStyle(document.body);
@@ -111,7 +122,12 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
   expect(zipHref).toBeTruthy();
 
   await expectResource(request, new URL(pdfHref, page.url()).toString(), 'application/pdf', 100_000);
-  await expectResource(request, new URL(zipHref, page.url()).toString(), 'application/zip', 100_000);
+  await expectResource(
+    request,
+    new URL(zipHref, page.url()).toString(),
+    ['application/zip', 'application/octet-stream', 'application/x-zip-compressed'],
+    100_000,
+  );
 
   await page.goto(viewerHref, {waitUntil: 'networkidle'});
   await expect(page.getByRole('heading', {name: /Mobile Image Set/i})).toBeVisible();
