@@ -1,0 +1,89 @@
+/*
+  Controlled Responsive Visual-Rhythm Optimization
+  Scope: spacing and section-boundary refinement only.
+  No typography, palette, imagery, content, or interaction changes.
+*/
+
+/* Desktop: reduce oversized opening footprint and stacked section padding. */
+@media (min-width: 1024px) {
+  .masthead {
+    padding: 10px 0;
+  }
+
+  .masthead-logo-container {
+    max-width: 820px;
+  }
+
+  .hero-section {
+    padding: 44px 0 58px;
+  }
+
+  .hero-container {
+    column-gap: clamp(48px, 5.5vw, 72px);
+    max-width: 1060px;
+  }
+
+  .article-section {
+    padding-top: 2.75rem;
+    padding-bottom: 5rem;
+  }
+
+  .article-chapter {
+    margin-top: 56px;
+  }
+
+  .ast-media {
+    padding-bottom: 3.75rem;
+  }
+
+  .contact-section {
+    padding: 2.75rem 0 3rem;
+  }
+
+  .contact-divider {
+    margin-bottom: 2rem;
+  }
+}
+
+/* Tablet: preserve the strongest current composition while tightening transitions. */
+@media (min-width: 700px) and (max-width: 1023px) {
+  .ast-media {
+    padding-bottom: 3.25rem;
+  }
+
+  .contact-section {
+    padding: 2.75rem 0 3rem;
+  }
+
+  .contact-divider {
+    margin-bottom: 2.25rem;
+  }
+}
+
+/* Mobile: modest compression only; retain breathing room and readability. */
+@media (max-width: 699px) {
+  .hero-section {
+    padding: 34px 0 42px;
+  }
+
+  .hero-container {
+    row-gap: 18px;
+  }
+
+  .article-section {
+    padding-top: 2.5rem;
+    padding-bottom: 4rem;
+  }
+
+  .ast-media {
+    padding-bottom: 3rem;
+  }
+
+  .contact-section {
+    padding: 2.5rem 0 2.75rem;
+  }
+
+  .contact-divider {
+    margin-bottom: 2rem;
+  }
+}
