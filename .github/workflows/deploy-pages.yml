@@ -76,9 +76,6 @@ jobs:
       - name: Build production site
         run: npm run build
 
-      - name: Inject responsive visual rhythm
-        run: node scripts/inject-visual-rhythm.mjs
-
       - name: Inject social preview metadata
         run: node scripts/inject-social-metadata.mjs
 
@@ -89,7 +86,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s dist/visual-rhythm.css
           test -s dist/assets/media/american-song-table-summer-2026.jpg
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
@@ -97,7 +93,6 @@ jobs:
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-01.jpg
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
           test -s dist/mobile-lead-sheet/index.html
-          grep --fixed-strings --quiet 'visual-rhythm.css' dist/index.html
           grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
           grep --fixed-strings --quiet 'property="og:image"' dist/index.html
           grep --fixed-strings --quiet 'View Mobile Image Set' dist/index.html
