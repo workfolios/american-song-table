@@ -164,7 +164,7 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
     headingFont: getComputedStyle(document.querySelector('h1')).fontFamily,
     loadedFonts: [...document.fonts]
       .filter((font) => font.status === 'loaded')
-      .map((font) => font.family),
+      .map((font) => font.family.replace(/^[\"']|[\"']$/g, '')),
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
   }));
