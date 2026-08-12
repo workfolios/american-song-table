@@ -172,7 +172,7 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
   });
 });
 
-test('critical accessibility regressions are blocked', async ({page}, testInfo) => {
+test('WCAG A/AA accessibility regressions are blocked', async ({page}, testInfo) => {
   await page.goto('/', {waitUntil: 'networkidle'});
 
   await page.keyboard.press('Tab');
@@ -191,6 +191,5 @@ test('critical accessibility regressions are blocked', async ({page}, testInfo) 
     JSON.stringify(results, null, 2),
   );
 
-  const criticalViolations = results.violations.filter((violation) => violation.impact === 'critical');
-  expect(criticalViolations, JSON.stringify(criticalViolations, null, 2)).toEqual([]);
+  expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
 });
