@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: github-pages-${{ github.ref }}
@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          ref: agent/devops-f01-f09-remediation
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -33,28 +31,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-
-      - name: Generate remediated dependency lockfile
-        run: npm audit fix --package-lock-only
-
-      - name: Commit remediated dependency lockfile
-        shell: bash
-        run: |
-          set -euo pipefail
-          if git diff --quiet -- package-lock.json; then
-            echo "No lockfile changes remain to commit."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "Refresh audited dependency lockfile"
-            git push origin HEAD:agent/devops-f01-f09-remediation
-          fi
-
-      - name: Stop temporary lockfile-generation pass
-        run: |
-          echo "Temporary lockfile generation complete; final validation will run after the generated lockfile is committed."
-          exit 1
 
       - name: Audit locked dependencies
         run: npm audit --audit-level=high
