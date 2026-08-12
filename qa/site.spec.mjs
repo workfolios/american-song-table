@@ -147,7 +147,6 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
   );
 
   await page.goto('/mobile-lead-sheet/', {waitUntil: 'networkidle'});
-  await page.evaluate(() => document.fonts?.ready);
   await expect(page).toHaveTitle(/Mobile Lead Sheet/i);
   await expect(page.locator('main#lead-sheet-pages')).toBeVisible();
   await expect(page.getByRole('heading', {name: 'The Room Beside You'})).toBeVisible();
@@ -158,21 +157,28 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
     await expectImageLoaded(viewerImages.nth(index));
   }
 
-  const viewerRendering = await page.evaluate(() => ({
-    background: getComputedStyle(document.body).backgroundColor,
-    bodyFont: getComputedStyle(document.body).fontFamily,
-    headingFont: getComputedStyle(document.querySelector('h1')).fontFamily,
-    loadedFonts: [...document.fonts]
-      .filter((font) => font.status === 'loaded')
-      .map((font) => font.family.replace(/^[\"']|[\"']$/g, '')),
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-  }));
+  const viewerRendering = await page.evaluate(async () => {
+    const [interFaces, playfairFaces] = await Promise.all([
+      document.fonts.load('400 16px Inter'),
+      document.fonts.load('600 16px "Playfair Display"'),
+    ]);
+    await document.fonts.ready;
+
+    return {
+      background: getComputedStyle(document.body).backgroundColor,
+      bodyFont: getComputedStyle(document.body).fontFamily,
+      headingFont: getComputedStyle(document.querySelector('h1')).fontFamily,
+      interLoaded: interFaces.some((font) => font.status === 'loaded'),
+      playfairLoaded: playfairFaces.some((font) => font.status === 'loaded'),
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    };
+  });
   expect(viewerRendering.background).toBe('rgb(2, 8, 20)');
   expect(viewerRendering.bodyFont).toContain('Inter');
   expect(viewerRendering.headingFont).toContain('Playfair Display');
-  expect(viewerRendering.loadedFonts).toContain('Inter');
-  expect(viewerRendering.loadedFonts).toContain('Playfair Display');
+  expect(viewerRendering.interLoaded).toBe(true);
+  expect(viewerRendering.playfairLoaded).toBe(true);
   expect(viewerRendering.scrollWidth).toBeLessThanOrEqual(viewerRendering.clientWidth + 1);
 
   await page.screenshot({
