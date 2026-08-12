@@ -14,15 +14,14 @@ function evidencePath(...parts) {
 }
 
 async function expectImageLoaded(locator) {
+  await locator.scrollIntoViewIfNeeded();
   await expect(locator).toBeVisible();
-  const dimensions = await locator.evaluate((image) => ({
-    complete: image.complete,
-    naturalWidth: image.naturalWidth,
-    naturalHeight: image.naturalHeight,
-  }));
-  expect(dimensions.complete).toBe(true);
-  expect(dimensions.naturalWidth).toBeGreaterThan(0);
-  expect(dimensions.naturalHeight).toBeGreaterThan(0);
+  await expect.poll(
+    () => locator.evaluate((image) =>
+      image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
+    ),
+    {message: 'Image should finish loading with valid intrinsic dimensions'},
+  ).toBe(true);
 }
 
 async function expectResource(request, url, expectedTypes, minimumBytes = 1) {
