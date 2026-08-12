@@ -157,12 +157,28 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
     await expectImageLoaded(viewerImages.nth(index));
   }
 
-  const viewerRendering = await page.evaluate(() => ({
-    background: getComputedStyle(document.body).backgroundColor,
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-  }));
+  const viewerRendering = await page.evaluate(async () => {
+    const [interFaces, playfairFaces] = await Promise.all([
+      document.fonts.load('400 16px Inter'),
+      document.fonts.load('600 16px "Playfair Display"'),
+    ]);
+    await document.fonts.ready;
+
+    return {
+      background: getComputedStyle(document.body).backgroundColor,
+      bodyFont: getComputedStyle(document.body).fontFamily,
+      headingFont: getComputedStyle(document.querySelector('h1')).fontFamily,
+      interLoaded: interFaces.some((font) => font.status === 'loaded'),
+      playfairLoaded: playfairFaces.some((font) => font.status === 'loaded'),
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    };
+  });
   expect(viewerRendering.background).toBe('rgb(2, 8, 20)');
+  expect(viewerRendering.bodyFont).toContain('Inter');
+  expect(viewerRendering.headingFont).toContain('Playfair Display');
+  expect(viewerRendering.interLoaded).toBe(true);
+  expect(viewerRendering.playfairLoaded).toBe(true);
   expect(viewerRendering.scrollWidth).toBeLessThanOrEqual(viewerRendering.clientWidth + 1);
 
   await page.screenshot({
