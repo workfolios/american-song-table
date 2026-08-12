@@ -147,6 +147,7 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
   );
 
   await page.goto('/mobile-lead-sheet/', {waitUntil: 'networkidle'});
+  await page.evaluate(() => document.fonts?.ready);
   await expect(page).toHaveTitle(/Mobile Lead Sheet/i);
   await expect(page.locator('main#lead-sheet-pages')).toBeVisible();
   await expect(page.getByRole('heading', {name: 'The Room Beside You'})).toBeVisible();
@@ -159,10 +160,19 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
 
   const viewerRendering = await page.evaluate(() => ({
     background: getComputedStyle(document.body).backgroundColor,
+    bodyFont: getComputedStyle(document.body).fontFamily,
+    headingFont: getComputedStyle(document.querySelector('h1')).fontFamily,
+    loadedFonts: [...document.fonts]
+      .filter((font) => font.status === 'loaded')
+      .map((font) => font.family),
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
   }));
   expect(viewerRendering.background).toBe('rgb(2, 8, 20)');
+  expect(viewerRendering.bodyFont).toContain('Inter');
+  expect(viewerRendering.headingFont).toContain('Playfair Display');
+  expect(viewerRendering.loadedFonts).toContain('Inter');
+  expect(viewerRendering.loadedFonts).toContain('Playfair Display');
   expect(viewerRendering.scrollWidth).toBeLessThanOrEqual(viewerRendering.clientWidth + 1);
 
   await page.screenshot({
