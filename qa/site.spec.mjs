@@ -14,15 +14,14 @@ function evidencePath(...parts) {
 }
 
 async function expectImageLoaded(locator) {
+  await locator.scrollIntoViewIfNeeded();
   await expect(locator).toBeVisible();
-  const dimensions = await locator.evaluate((image) => ({
-    complete: image.complete,
-    naturalWidth: image.naturalWidth,
-    naturalHeight: image.naturalHeight,
-  }));
-  expect(dimensions.complete).toBe(true);
-  expect(dimensions.naturalWidth).toBeGreaterThan(0);
-  expect(dimensions.naturalHeight).toBeGreaterThan(0);
+  await expect.poll(
+    () => locator.evaluate((image) =>
+      image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
+    ),
+    {message: 'Image should finish loading with valid intrinsic dimensions'},
+  ).toBe(true);
 }
 
 async function expectResource(request, url, expectedTypes, minimumBytes = 1) {
@@ -172,7 +171,7 @@ test('publication downloads and mobile lead-sheet viewer are available', async (
   });
 });
 
-test('critical accessibility regressions are blocked', async ({page}, testInfo) => {
+test('WCAG A/AA accessibility regressions are blocked', async ({page}, testInfo) => {
   await page.goto('/', {waitUntil: 'networkidle'});
 
   await page.keyboard.press('Tab');
@@ -191,6 +190,5 @@ test('critical accessibility regressions are blocked', async ({page}, testInfo) 
     JSON.stringify(results, null, 2),
   );
 
-  const criticalViolations = results.violations.filter((violation) => violation.impact === 'critical');
-  expect(criticalViolations, JSON.stringify(criticalViolations, null, 2)).toEqual([]);
+  expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
 });

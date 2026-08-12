@@ -1,5 +1,13 @@
 import {defineConfig} from '@playwright/test';
 
+const viewports = [
+  ['desktop-1440', {width: 1440, height: 900}],
+  ['tablet-768', {width: 768, height: 1024}],
+  ['mobile-390', {width: 390, height: 844}],
+];
+
+const browsers = ['chromium', 'firefox', 'webkit'];
+
 export default defineConfig({
   testDir: '.',
   testMatch: ['site.spec.mjs'],
@@ -28,18 +36,10 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
-  projects: [
-    {
-      name: 'desktop-1440',
-      use: {viewport: {width: 1440, height: 900}},
-    },
-    {
-      name: 'tablet-768',
-      use: {viewport: {width: 768, height: 1024}},
-    },
-    {
-      name: 'mobile-390',
-      use: {viewport: {width: 390, height: 844}},
-    },
-  ],
+  projects: browsers.flatMap((browserName) =>
+    viewports.map(([viewportName, viewport]) => ({
+      name: `${browserName}-${viewportName}`,
+      use: {browserName, viewport},
+    })),
+  ),
 });

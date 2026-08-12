@@ -10,6 +10,10 @@ This repository contains the static, responsive digital edition of the fictional
 - **Accessible Media:** Native HTML5 audio controls, keyboard-visible focus states, descriptive labels, and download actions.
 - **Static Architecture:** No database, API key, server-side runtime, or environment variable is required.
 
+## Runtime And Package Manager
+
+The approved maintenance runtime is Node.js 22 with npm 10.9.8. `package.json` declares this contract so local maintenance and CI use the same supported runtime family and package manager.
+
 ## Local Development
 
 ```bash
@@ -35,20 +39,22 @@ The repository is configured to validate pull requests and publish through GitHu
 
 The workflow:
 
-1. Checks out the repository.
-2. Installs the locked application dependencies.
-3. Validates the approved publication assets and checksums.
-4. Stages the PDF, ZIP, and extracted mobile lead-sheet JPG pages.
+1. Checks out the repository using an immutable action reference.
+2. Installs the locked application dependencies with Node.js 22.
+3. Fails on Critical or High npm vulnerability findings against the locked dependency graph.
+4. Verifies `SHA256.txt` against the approved source publication assets and stages the PDF, ZIP, and extracted mobile lead-sheet JPG pages.
 5. Runs the Vite production build.
 6. Injects the approved social-preview metadata.
 7. Injects the approved mobile lead-sheet actions and viewer.
 8. Verifies the required production files and copy markers.
-9. Runs blocking Playwright browser QA in desktop, tablet, and mobile viewports.
-10. Verifies stylesheet delivery, approved computed styling, responsive overflow, imagery, MP3s, downloads, mobile-viewer assets, keyboard access, and critical axe-core accessibility results.
+9. Runs blocking Playwright browser QA across Chromium, Firefox, and WebKit at desktop, tablet, and mobile viewports.
+10. Verifies stylesheet delivery, approved computed styling, responsive overflow, imagery, MP3s, downloads, mobile-viewer assets, keyboard access, and WCAG A/AA axe-core results.
 11. Uploads screenshots, reports, traces, videos, and accessibility evidence for 90 days.
 12. Uploads and deploys `dist/` to the `github-pages` environment only after the complete build job succeeds.
 
 Pull-request runs validate the deployable artifact but do not publish it.
+
+The workflow defaults to read-only repository access. GitHub Pages write and OIDC permissions are granted only to the deployment job.
 
 ## Production Baseline And Maintenance
 
@@ -84,8 +90,8 @@ The excluded large visual-narration MP4 and high-resolution PNG lead-sheet maste
 
 ## Integrity Verification
 
-`SHA256.txt` contains checksums for the deployed media, downloads, and editorial image assets. From the repository root:
+`SHA256.txt` contains checksums for the approved repository-resident source media, downloads, and editorial image assets. From the repository root:
 
 ```bash
-sha256sum --check SHA256.txt
+sha256sum --check --strict SHA256.txt
 ```
