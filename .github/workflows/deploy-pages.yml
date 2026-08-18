@@ -91,6 +91,8 @@ jobs:
           test -n "$PRIMARY_CSS"
           test -s "$PRIMARY_CSS"
 
+          test -s dist/refinement.css
+          test -s dist/refinement.js
           test -s dist/assets/media/american-song-table-summer-2026.jpg
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
@@ -101,6 +103,8 @@ jobs:
 
           grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
           grep --fixed-strings --quiet 'property="og:image"' dist/index.html
+          grep --fixed-strings --quiet 'refinement.css' dist/index.html
+          grep --fixed-strings --quiet 'refinement.js' dist/index.html
           grep --fixed-strings --quiet 'View Mobile Image Set' dist/index.html
           grep --fixed-strings --quiet 'Download All Mobile Images (.ZIP)' dist/index.html
           grep --fixed-strings --quiet 'the-room-beside-you-lyrics-page-02.jpg' dist/mobile-lead-sheet/index.html

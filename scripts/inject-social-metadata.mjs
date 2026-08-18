@@ -22,8 +22,16 @@ const metadata = `
   <meta name="twitter:image" content="https://workfolios.github.io/american-song-table/assets/media/american-song-table-summer-2026.jpg">
   <meta name="twitter:image:alt" content="American Song Table Summer 2026 magazine cover featuring the Half Smile Grace story about The Room Beside You.">`;
 
+const refinementAssets = `
+  <link rel="stylesheet" href="./refinement.css">
+  <script defer src="./refinement.js"></script>`;
+
 if (!html.includes('property="og:image"')) {
   html = html.replace('</head>', `${metadata}\n</head>`);
+}
+
+if (!html.includes('refinement.css')) {
+  html = html.replace('</head>', `${refinementAssets}\n</head>`);
 }
 
 writeFileSync(indexPath, html);

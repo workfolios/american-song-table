@@ -1,0 +1,62 @@
+name: Verify American Song Table live deployment
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy American Song Table to GitHub Pages
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-smoke-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  live-smoke:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out deployed revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Pin npm version
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global npm@10.9.8
+          test "$(npm --version)" = "10.9.8"
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install live-smoke browser dependency
+        run: npm install --no-save --no-package-lock @playwright/test@1.59.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify deployed public experience
+        env:
+          LIVE_BASE_URL: https://workfolios.github.io/american-song-table/
+          DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: node qa/live-smoke.mjs
+
+      - name: Upload live verification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-smoke-${{ github.event.workflow_run.head_sha }}
+          path: qa-artifacts/live/
+          if-no-files-found: warn
+          retention-days: 90

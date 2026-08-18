@@ -1,0 +1,45 @@
+/*
+   Authorized Web Experience Refinement — August 2026
+   RO-005 Continuous Page-Progress Indicator
+   RO-090 Accessible Touch Target Sizing
+*/
+
+.ast-reading-progress {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1100;
+  height: 2px;
+  pointer-events: none;
+  background: transparent;
+}
+
+.ast-reading-progress__bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #C65332;
+  opacity: 0.88;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+@media (pointer: coarse), (hover: none) {
+  .ast-narration__external,
+  .ast-media__download,
+  .ast-media__external {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ast-reading-progress__bar {
+    will-change: auto;
+  }
+}
