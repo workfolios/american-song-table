@@ -34,6 +34,8 @@ The approved baseline includes:
 - Responsive desktop, tablet, and mobile behavior
 - Blocking browser QA before GitHub Pages publication
 
+The August 18, 2026 refinement pass is limited to the explicitly authorized continuous page-progress indicator and coarse-pointer touch-target treatment. It does not reopen the rejected visual-rhythm experiment or authorize broader design, content, navigation, or media changes.
+
 ## 3.0 Production Architecture
 
 The site is a static Vite application deployed through GitHub Actions to GitHub Pages.
@@ -45,13 +47,14 @@ The deployment workflow:
 3. Validates approved publication assets and checksums.
 4. Stages the PDF, ZIP, and extracted mobile JPG pages.
 5. Builds the production site into `dist/`.
-6. Injects approved social-preview metadata.
+6. Injects approved social-preview metadata and the bounded refinement assets.
 7. Injects approved mobile lead-sheet actions and viewer markup.
-8. Verifies required production files and copy markers.
+8. Verifies required production files, refinement assets, and copy markers.
 9. Installs the browser-QA runtime.
 10. Runs Playwright and axe-core guardrails against the exact production artifact.
 11. Uploads QA evidence.
 12. Publishes to GitHub Pages only after the build job succeeds.
+13. After a successful non-PR deployment workflow, the separate live-smoke workflow checks out the deployed revision and verifies the actual public GitHub Pages experience in Chromium.
 
 ## 4.0 Blocking QA Controls
 
@@ -60,23 +63,30 @@ Future pull requests and production deployments must pass the existing browser-Q
 | Control | Blocking condition |
 |---|---|
 | Primary stylesheet | Missing, empty, non-CSS response, or not linked |
+| Authorized refinement assets | Refinement CSS/JS is missing, empty, or not linked in the built page |
 | Approved design field | Body does not render on `#020814` |
 | Approved text field | Body text does not render in the approved ivory tone |
 | Typography | Expected production font stack is not active |
 | Hero structure | Hero no longer renders as the expected grid composition |
-| Responsive integrity | Horizontal overflow occurs at a governed viewport |
+| Responsive integrity | Horizontal overflow occurs at a governed representative, boundary, or orientation viewport |
+| Reading progress | Progress treatment is absent, obstructive, duplicated, or fails to reflect document position |
+| Coarse-pointer actions | Governed media/download actions fail the 44px project touch-target treatment |
 | Editorial imagery | Masthead or hero image fails to load |
 | Audio delivery | Any governed MP3 is missing, empty, or returned with an invalid media type |
 | Lead-sheet delivery | PDF, ZIP, viewer, or any of the three JPG pages is unavailable |
 | Mobile viewer | Viewer loses its approved dark presentation or develops overflow |
-| Keyboard access | Skip link does not receive initial keyboard focus |
-| Accessibility | A critical axe-core violation is detected |
+| Keyboard access | Skip link or governed interactive focus state fails |
+| Reduced motion | Reduced-motion preference does not suppress authored transition/smooth-scroll behavior as intended |
+| Form state | Processing, success, provider-error, or network-error UI behavior regresses |
+| Accessibility | Any axe-core violation returned for the governed WCAG A/AA tag set is detected |
 
-Governed viewport classes:
+Governed representative viewport classes:
 
 - Desktop: `1440 × 900`
 - Tablet: `768 × 1024`
 - Mobile: `390 × 844`
+
+Targeted boundary/orientation evidence additionally covers the small-mobile threshold, `699/700`, `1023/1024`, and a representative landscape state.
 
 ## 5.0 Protected Public Endpoints
 
@@ -87,7 +97,7 @@ The following production endpoints are part of the baseline and must remain oper
 - PDF: `https://workfolios.github.io/american-song-table/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf`
 - Mobile-image ZIP: `https://workfolios.github.io/american-song-table/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip`
 
-The workflow also protects the three extracted mobile JPG pages and the publication audio files.
+The workflow also protects the three extracted mobile JPG pages, the publication audio files, and the bounded refinement CSS/JS assets.
 
 ## 6.0 Change-Control Standard
 
@@ -135,14 +145,17 @@ The recovery branch `baseline/approved-production-2026-07-31` provides a fixed c
 
 ## 8.0 QA Evidence and Retention
 
-Each workflow run stores:
+Each pre-deployment workflow run stores:
 
 - Responsive screenshots
+- Refinement and breakpoint screenshots
 - Playwright HTML report
 - Failure screenshots
 - Browser traces
 - Failure videos
 - axe-core accessibility results
+
+Each production deployment also triggers a bounded live-smoke run that stores public-site screenshots when the run reaches browser verification.
 
 Evidence retention is set to 90 days. Important incident evidence should additionally be summarized in the corresponding pull request because GitHub Actions artifacts are not permanent records.
 
@@ -152,19 +165,19 @@ The current controls materially reduce deployment risk but do not eliminate ever
 
 | Residual risk | Current disposition |
 |---|---|
-| Browser-engine coverage | Chromium only; Safari and Firefox remain manual confirmation areas |
-| Viewport coverage | Three representative classes; uncommon devices may still require manual review |
-| Accessibility threshold | Critical violations block; lower-severity findings require review rather than automatic failure |
-| Pixel-level drift | No approved-baseline pixel-diff gate is active |
-| Live post-deployment probe | The workflow validates the deployable artifact before publication; the live URL is not yet re-tested after deployment |
-| External services | YouTube, form delivery, and third-party font availability can change outside this repository |
-| Post-build injection | Social metadata and mobile lead-sheet actions still rely on controlled build-time HTML injection |
+| Browser/device combinations | Chromium, Firefox, and WebKit are automated at governed representative viewports; uncommon browser/device combinations remain manual review areas |
+| Viewport coverage | Representative sizes plus selected breakpoint boundaries and landscape orientation are automated; uncommon devices may still require manual review |
+| Accessibility coverage | Governed axe-core WCAG A/AA violations block; targeted keyboard, focus, reduced-motion, touch, and form-state tests supplement but do not replace human accessibility review |
+| Pixel-level drift | No approved-baseline pixel-diff gate is active; responsive screenshots remain human-review evidence |
+| Live post-deployment probe | Automated Chromium smoke verification covers the actual public URL after successful non-PR deployment; it is intentionally narrower than the full pre-deployment matrix |
+| External services | YouTube, actual Formspree delivery, and third-party font availability can change outside this repository |
+| Post-build injection | Social metadata, refinement asset references, and mobile lead-sheet actions rely on controlled build-time HTML injection |
 
-These items are deferred maintenance opportunities, not authorization for automatic implementation.
+These items are accepted maintenance boundaries, not authorization for automatic scope expansion.
 
 ## 10.0 Maintenance Posture
 
-The website is now in stable production maintenance.
+The website remains in stable production maintenance after the authorized August 2026 refinement pass.
 
 Permitted work is limited to:
 
@@ -179,12 +192,13 @@ No additional visual-rhythm optimization is pending.
 
 ## 11.0 Closeout Record
 
-The current stabilization sequence is complete when:
+The current governed refinement/release sequence is complete when:
 
-- This baseline record is merged into `main`.
-- The updated README accurately describes the production controls.
-- The pull-request governance checklist is available.
+- The authorized RO-005 and RO-090 implementation is merged to `main`.
+- The updated production baseline accurately reflects current controls.
 - The full build and browser-QA workflow passes.
-- GitHub Pages republishes the unchanged website artifact successfully.
+- GitHub Pages publishes the validated artifact successfully.
+- The automated live-smoke workflow verifies the actual public URL.
+- Human visual fidelity review confirms the authorized refinements preserve the approved publication character.
 
-After those conditions are satisfied, American Song Table remains an active published website under maintenance rather than an open-ended redesign project.
+After those conditions are satisfied, American Song Table remains an active published website under stable production maintenance rather than an open-ended redesign project.
