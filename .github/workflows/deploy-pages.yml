@@ -93,6 +93,7 @@ jobs:
 
           test -s dist/refinement.css
           test -s dist/refinement.js
+          test -s dist/sitemap.xml
           test -s dist/assets/media/american-song-table-summer-2026.jpg
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-guitar-chart.pdf
           test -s dist/assets/downloads/lead-sheet/the-room-beside-you-lyric-lead-sheet-mobile-images.zip
@@ -101,13 +102,20 @@ jobs:
           test -s dist/assets/downloads/lead-sheet/mobile-images/the-room-beside-you-lyrics-page-02.jpg
           test -s dist/mobile-lead-sheet/index.html
 
-          grep --fixed-strings --quiet 'american-song-table-summer-2026.jpg' dist/index.html
+          grep --fixed-strings --quiet 'Half Smile Grace: The Room Beside You | American Song Table' dist/index.html
+          grep --fixed-strings --quiet 'American Song Table’s Summer 2026 cover story on The Room Beside You' dist/index.html
+          grep --fixed-strings --quiet 'name="robots" content="index, follow, max-image-preview:large"' dist/index.html
+          grep --fixed-strings --quiet 'rel="canonical" href="https://workfolios.github.io/american-song-table/"' dist/index.html
           grep --fixed-strings --quiet 'property="og:image"' dist/index.html
+          grep --fixed-strings --quiet 'type="application/ld+json"' dist/index.html
+          grep --fixed-strings --quiet '"@type": "Article"' dist/index.html
+          grep --fixed-strings --quiet 'https://workfolios.github.io/american-song-table/' dist/sitemap.xml
           grep --fixed-strings --quiet 'refinement.css' dist/index.html
           grep --fixed-strings --quiet 'refinement.js' dist/index.html
           grep --fixed-strings --quiet 'View Mobile Image Set' dist/index.html
           grep --fixed-strings --quiet 'Download All Mobile Images (.ZIP)' dist/index.html
           grep --fixed-strings --quiet 'the-room-beside-you-lyrics-page-02.jpg' dist/mobile-lead-sheet/index.html
+          grep --fixed-strings --quiet 'name="robots" content="noindex, follow"' dist/mobile-lead-sheet/index.html
 
       - name: Install browser QA dependencies
         run: npm install --no-save --no-package-lock @playwright/test@1.59.1 axe-core@4.11.4
