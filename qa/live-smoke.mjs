@@ -62,39 +62,47 @@ try {
   desktopPage.on('pageerror', (error) => pageErrors.push(error.message));
 
   await desktopPage.goto(baseURL, {waitUntil: 'networkidle'});
+  await desktopPage.evaluate(() => document.fonts?.ready);
   assert.match(await desktopPage.title(), /Half Smile Grace/);
   assert.equal(await desktopPage.locator('main#main-content').count(), 1);
   assert.equal(await desktopPage.locator('#ast-reading-progress').count(), 1);
   assert.equal(await desktopPage.locator('#contact-form').getAttribute('action'), 'https://formspree.io/f/mrenokqv');
 
-  // Live deployment verification should measure the actual document endpoint
-  // deterministically. Keyboard End behavior is already covered by the blocking
-  // pre-deployment interaction suite and can vary with browser focus state.
-  await desktopPage.evaluate(() => {
-    const root = document.scrollingElement || document.documentElement;
-    window.scrollTo(0, root.scrollHeight);
-  });
-  await desktopPage.waitForFunction(() => {
-    const bar = document.querySelector('.ast-reading-progress__bar');
-    const match = bar?.style.transform.match(/scaleX\(([-\d.]+)\)/);
-    return match ? Number(match[1]) > 0.98 : false;
-  });
+  // Live rendering can grow after the first bottom scroll as late layout work
+  // settles. Recalculate the endpoint and re-scroll until the document height,
+  // scroll position, and RO-005 progress value converge on the same final state.
+  let liveState = null;
+  for (let attempt = 1; attempt <= 12; attempt += 1) {
+    await desktopPage.evaluate(() => {
+      const root = document.scrollingElement || document.documentElement;
+      const maxScroll = Math.max(root.scrollHeight - window.innerHeight, 0);
+      window.scrollTo(0, maxScroll);
+    });
+    await desktopPage.waitForTimeout(150);
 
-  const liveState = await desktopPage.evaluate(() => {
-    const root = document.scrollingElement || document.documentElement;
-    const bar = document.querySelector('.ast-reading-progress__bar');
-    const match = bar?.style.transform.match(/scaleX\(([-\d.]+)\)/);
-    return {
-      progress: match ? Number(match[1]) : 0,
-      scrollTop: window.scrollY,
-      maxScroll: Math.max(root.scrollHeight - window.innerHeight, 0),
-    };
-  });
+    liveState = await desktopPage.evaluate(() => {
+      const root = document.scrollingElement || document.documentElement;
+      const bar = document.querySelector('.ast-reading-progress__bar');
+      const match = bar?.style.transform.match(/scaleX\(([-\d.]+)\)/);
+      return {
+        progress: match ? Number(match[1]) : 0,
+        scrollTop: window.scrollY,
+        maxScroll: Math.max(root.scrollHeight - window.innerHeight, 0),
+      };
+    });
+
+    const atDocumentEnd = Math.abs(liveState.maxScroll - liveState.scrollTop) <= 2;
+    if (atDocumentEnd && liveState.progress > 0.98) {
+      break;
+    }
+  }
+
+  assert.ok(liveState, 'Live document-end state should be measurable');
   assert.ok(
     Math.abs(liveState.maxScroll - liveState.scrollTop) <= 2,
-    `Live page should reach the document end; scrollTop=${liveState.scrollTop}, maxScroll=${liveState.maxScroll}`,
+    `Live page should reach the stabilized document end; scrollTop=${liveState.scrollTop}, maxScroll=${liveState.maxScroll}`,
   );
-  assert.ok(liveState.progress > 0.98, `Live progress should reach the end; received ${liveState.progress}`);
+  assert.ok(liveState.progress > 0.98, `Live progress should reach the stabilized end; received ${liveState.progress}`);
 
   const heroImageLoaded = await desktopPage.locator('.hero-profile-img').evaluate((image) =>
     image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
