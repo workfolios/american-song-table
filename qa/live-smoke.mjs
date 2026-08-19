@@ -4,6 +4,8 @@ import path from 'node:path';
 import {chromium} from '@playwright/test';
 
 const baseURL = process.env.LIVE_BASE_URL || 'https://workfolios.github.io/american-song-table/';
+const expectedTitle = 'Half Smile Grace: The Room Beside You | American Song Table';
+const expectedDescription = 'American Song Table’s Summer 2026 cover story on The Room Beside You, a living legacy tribute to Karen Sunderman rooted in Lake Byron, South Dakota.';
 const evidenceRoot = path.resolve('qa-artifacts', 'live');
 mkdirSync(evidenceRoot, {recursive: true});
 
@@ -18,10 +20,16 @@ async function waitForRelease() {
       lastStatus = `HTTP ${response.status}`;
       if (response.ok) {
         const html = await response.text();
-        if (html.includes('refinement.css') && html.includes('refinement.js')) {
+        if (
+          html.includes('refinement.css')
+          && html.includes('refinement.js')
+          && html.includes(expectedTitle)
+          && html.includes('max-image-preview:large')
+          && html.includes('application/ld+json')
+        ) {
           return;
         }
-        lastStatus = 'release marker not present yet';
+        lastStatus = 'SEO release markers not present yet';
       }
     } catch (error) {
       lastStatus = error.message;
@@ -45,6 +53,9 @@ await expectPublicResource('refinement.css');
 await expectPublicResource('refinement.js');
 await expectPublicResource('assets/media/american-song-table-summer-2026.jpg');
 await expectPublicResource('mobile-lead-sheet/');
+const sitemapResponse = await expectPublicResource('sitemap.xml');
+const sitemapText = await sitemapResponse.text();
+assert.match(sitemapText, /<loc>https:\/\/workfolios\.github\.io\/american-song-table\/<\/loc>/);
 
 const browser = await chromium.launch();
 
@@ -63,10 +74,34 @@ try {
 
   await desktopPage.goto(baseURL, {waitUntil: 'networkidle'});
   await desktopPage.evaluate(() => document.fonts?.ready);
-  assert.match(await desktopPage.title(), /Half Smile Grace/);
+  assert.equal(await desktopPage.title(), expectedTitle);
   assert.equal(await desktopPage.locator('main#main-content').count(), 1);
   assert.equal(await desktopPage.locator('#ast-reading-progress').count(), 1);
   assert.equal(await desktopPage.locator('#contact-form').getAttribute('action'), 'https://formspree.io/f/mrenokqv');
+
+  const seoState = await desktopPage.evaluate(() => {
+    const metaContent = (selector) => document.querySelector(selector)?.getAttribute('content') || '';
+    const canonical = document.querySelector('link[rel="canonical"]')?.getAttribute('href') || '';
+    const articleNode = document.querySelector('script[type="application/ld+json"]');
+    const article = articleNode?.textContent ? JSON.parse(articleNode.textContent) : null;
+    return {
+      description: metaContent('meta[name="description"]'),
+      robots: metaContent('meta[name="robots"]'),
+      ogTitle: metaContent('meta[property="og:title"]'),
+      twitterTitle: metaContent('meta[name="twitter:title"]'),
+      canonical,
+      article,
+    };
+  });
+
+  assert.equal(seoState.description, expectedDescription);
+  assert.equal(seoState.robots, 'index, follow, max-image-preview:large');
+  assert.equal(seoState.ogTitle, expectedTitle);
+  assert.equal(seoState.twitterTitle, expectedTitle);
+  assert.equal(seoState.canonical, baseURL);
+  assert.equal(seoState.article?.['@type'], 'Article');
+  assert.equal(seoState.article?.headline, 'Half Smile Grace');
+  assert.equal(seoState.article?.mainEntityOfPage?.['@id'], baseURL);
 
   // Live rendering can grow after the first bottom scroll as late layout work
   // settles. Recalculate the endpoint and re-scroll until the document height,
@@ -140,6 +175,8 @@ try {
   await mobilePage.goto(new URL('mobile-lead-sheet/', baseURL).toString(), {waitUntil: 'networkidle'});
   assert.equal(await mobilePage.locator('main#lead-sheet-pages img').count(), 3);
   assert.equal(await mobilePage.getByRole('heading', {name: 'The Room Beside You'}).count(), 1);
+  const mobileRobots = await mobilePage.locator('meta[name="robots"]').getAttribute('content');
+  assert.equal(mobileRobots, 'noindex, follow');
   await mobilePage.screenshot({path: path.join(evidenceRoot, 'live-mobile-lead-sheet.png'), fullPage: false});
   await mobileContext.close();
 } finally {
