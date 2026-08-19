@@ -10,7 +10,7 @@ const browsers = ['chromium', 'firefox', 'webkit'];
 
 export default defineConfig({
   testDir: '.',
-  testMatch: ['site.spec.mjs', 'refinement.spec.mjs'],
+  testMatch: ['site.spec.mjs', 'refinement.spec.mjs', 'seo.spec.mjs'],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
