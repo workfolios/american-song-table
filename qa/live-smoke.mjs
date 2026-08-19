@@ -67,13 +67,34 @@ try {
   assert.equal(await desktopPage.locator('#ast-reading-progress').count(), 1);
   assert.equal(await desktopPage.locator('#contact-form').getAttribute('action'), 'https://formspree.io/f/mrenokqv');
 
-  await desktopPage.keyboard.press('End');
-  await desktopPage.waitForTimeout(100);
-  const liveProgress = await desktopPage.locator('.ast-reading-progress__bar').evaluate((element) => {
-    const match = element.style.transform.match(/scaleX\(([-\d.]+)\)/);
-    return match ? Number(match[1]) : 0;
+  // Live deployment verification should measure the actual document endpoint
+  // deterministically. Keyboard End behavior is already covered by the blocking
+  // pre-deployment interaction suite and can vary with browser focus state.
+  await desktopPage.evaluate(() => {
+    const root = document.scrollingElement || document.documentElement;
+    window.scrollTo(0, root.scrollHeight);
   });
-  assert.ok(liveProgress > 0.98, `Live progress should reach the end; received ${liveProgress}`);
+  await desktopPage.waitForFunction(() => {
+    const bar = document.querySelector('.ast-reading-progress__bar');
+    const match = bar?.style.transform.match(/scaleX\(([-\d.]+)\)/);
+    return match ? Number(match[1]) > 0.98 : false;
+  });
+
+  const liveState = await desktopPage.evaluate(() => {
+    const root = document.scrollingElement || document.documentElement;
+    const bar = document.querySelector('.ast-reading-progress__bar');
+    const match = bar?.style.transform.match(/scaleX\(([-\d.]+)\)/);
+    return {
+      progress: match ? Number(match[1]) : 0,
+      scrollTop: window.scrollY,
+      maxScroll: Math.max(root.scrollHeight - window.innerHeight, 0),
+    };
+  });
+  assert.ok(
+    Math.abs(liveState.maxScroll - liveState.scrollTop) <= 2,
+    `Live page should reach the document end; scrollTop=${liveState.scrollTop}, maxScroll=${liveState.maxScroll}`,
+  );
+  assert.ok(liveState.progress > 0.98, `Live progress should reach the end; received ${liveState.progress}`);
 
   const heroImageLoaded = await desktopPage.locator('.hero-profile-img').evaluate((image) =>
     image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
