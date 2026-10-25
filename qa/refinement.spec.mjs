@@ -116,7 +116,13 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
   await page.goto('/', {waitUntil: 'domcontentloaded'});
 
   const viewports = [
+    ['small-320', 320, 800],
     ['small-360', 360, 800],
+    ['mobile-375', 375, 812],
+    ['mobile-390', 390, 844],
+    ['mobile-430', 430, 932],
+    ['mobile-480', 480, 900],
+    ['mobile-600', 600, 900],
     ['mobile-699', 699, 900],
     ['tablet-700', 700, 900],
     ['tablet-1023', 1023, 900],
@@ -133,22 +139,37 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     const state = await page.evaluate(() => {
       const root = document.documentElement;
       const hero = document.querySelector('.hero-container');
+      const heroText = document.querySelector('.hero-text')?.getBoundingClientRect();
+      const illustration = document.querySelector('.hero-illustration-container')?.getBoundingClientRect();
       return {
         scrollWidth: root.scrollWidth,
         clientWidth: root.clientWidth,
         heroColumns: hero ? getComputedStyle(hero).gridTemplateColumns : '',
         titleVisible: Boolean(document.querySelector('.hero-title')?.getBoundingClientRect().height),
+        heroText: heroText ? {left: heroText.left, right: heroText.right, top: heroText.top, bottom: heroText.bottom} : null,
+        illustration: illustration ? {left: illustration.left, right: illustration.right, top: illustration.top, bottom: illustration.bottom} : null,
       };
     });
 
     expect(state.scrollWidth, `${name} should not overflow horizontally`).toBeLessThanOrEqual(state.clientWidth + 1);
     expect(state.titleVisible, `${name} should preserve the feature title`).toBe(true);
     gridColumns.set(name, state.heroColumns);
+
+    if (width <= 699) {
+      expect(state.heroText, `${name} should preserve the editorial text column`).not.toBeNull();
+      expect(state.illustration, `${name} should preserve the portrait column`).not.toBeNull();
+      expect(state.heroText.left, `${name} text should remain left of the portrait`).toBeLessThan(state.illustration.left);
+      expect(state.heroText.right, `${name} text and portrait columns should not overlap`).toBeLessThanOrEqual(state.illustration.left + 1);
+      expect(state.illustration.right, `${name} portrait should remain within the viewport`).toBeLessThanOrEqual(state.clientWidth + 1);
+    }
+
     await page.screenshot({path: evidencePath(`boundary-${name}.png`), fullPage: false});
   }
 
-  expect(gridColumns.get('mobile-699')).not.toBe(gridColumns.get('tablet-700'));
-  expect(gridColumns.get('tablet-1023')).not.toBe(gridColumns.get('desktop-1024'));
+  expect(gridColumns.get('mobile-699').trim().split(/\s+/)).toHaveLength(2);
+  expect(gridColumns.get('tablet-700').trim().split(/\s+/)).toHaveLength(2);
+  expect(gridColumns.get('tablet-1023').trim().split(/\s+/)).toHaveLength(2);
+  expect(gridColumns.get('desktop-1024').trim().split(/\s+/)).toHaveLength(2);
 });
 
 test('form processing, success, provider error, and network recovery states are deterministic', async ({page}, testInfo) => {

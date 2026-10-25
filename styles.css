@@ -269,7 +269,8 @@ input:focus-visible {
   }
 }
 
-/* Mobile Hero - 699px and below */
+/* Mobile Hero - 699px and below
+   Preserve the approved editorial relationship: feature text left, Karen portrait right. */
 @media (max-width: 699px) {
   .hero-section {
     height: auto;
@@ -279,10 +280,12 @@ input:focus-visible {
 
   .hero-container {
     display: grid;
-    grid-template-columns: 1fr;
-    row-gap: 24px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: clamp(10px, 3vw, 18px);
+    row-gap: 0;
     width: 100%;
-    max-width: 540px;
+    max-width: 620px;
     margin: 0 auto;
     padding: 0 20px;
   }
@@ -292,21 +295,28 @@ input:focus-visible {
   }
 
   .hero-title {
-    font-size: clamp(3.1rem, 17vw, 4.25rem);
+    font-size: clamp(2.85rem, 13vw, 3.8rem);
     line-height: 0.94;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
   }
 
   .hero-subtitle {
     max-width: 100%;
-    font-size: 1.15rem;
-    line-height: 1.5;
+    font-size: clamp(0.95rem, 3.5vw, 1.08rem);
+    line-height: 1.45;
   }
 
-  .hero-illustration-container,
+  .hero-illustration-container {
+    justify-content: flex-end;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+  }
+
   .hero-profile-img {
-    max-width: 245px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 290px;
+    margin: 0 0 0 auto;
   }
 
   .article-chapter {
@@ -316,9 +326,24 @@ input:focus-visible {
 
 /* Small phone adjustment for hero */
 @media (max-width: 360px) {
-  .hero-illustration-container,
+  .hero-container {
+    column-gap: 8px;
+    padding: 0 16px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.65rem, 13vw, 2.95rem);
+    margin-bottom: 16px;
+  }
+
+  .hero-subtitle {
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+
   .hero-profile-img {
-    max-width: 215px;
+    width: 100%;
+    max-width: 154px;
   }
 }
 
