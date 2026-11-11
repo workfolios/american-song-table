@@ -269,6 +269,16 @@ input:focus-visible {
   }
 }
 
+/* Compact desktop / large tablet hero — interpolate the portrait cap from the 1023px tablet baseline
+   to the unchanged wide-desktop 380px cap at 1280px. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .hero-illustration-container {
+    max-width: clamp(290px, calc(35vw - 68px), 380px);
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+
 /* Mobile Hero - 699px and below
    Preserve the approved editorial relationship: feature text left, Karen portrait right. */
 @media (max-width: 699px) {
@@ -314,8 +324,8 @@ input:focus-visible {
   }
 
   .hero-profile-img {
-    width: 100%;
-    max-width: 290px;
+    width: 84%;
+    max-width: 244px;
     margin: 0 0 0 auto;
   }
 
@@ -342,8 +352,8 @@ input:focus-visible {
   }
 
   .hero-profile-img {
-    width: 100%;
-    max-width: 154px;
+    width: 84%;
+    max-width: 132px;
   }
 }
 
