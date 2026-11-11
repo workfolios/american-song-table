@@ -269,11 +269,24 @@ input:focus-visible {
   }
 }
 
-/* Compact desktop / large tablet hero — interpolate the portrait cap from the 1023px tablet baseline
-   to the unchanged wide-desktop 380px cap at 1280px. */
+/* Upper tablet: increase portrait presence progressively without changing smaller approved tablets.
+   Preserve the 700-959px baseline and align smoothly with the compact desktop hero. */
+@media (min-width: 960px) and (max-width: 1023px) {
+  .hero-container {
+    grid-template-columns: minmax(0, 330px) minmax(220px, clamp(290px, calc(87.3vw - 548px), 345px));
+  }
+
+  .hero-illustration-container,
+  .hero-profile-img {
+    max-width: clamp(290px, calc(87.3vw - 548px), 345px);
+  }
+}
+
+/* Compact desktop / iPad Pro: preserve the approved wide-desktop cap while scaling
+   the portrait from the upper-tablet 345px boundary toward 380px at 1280px. */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .hero-illustration-container {
-    max-width: clamp(290px, calc(35vw - 68px), 380px);
+    max-width: clamp(345px, calc(13.7vw + 204.7px), 380px);
     margin-left: auto;
     margin-right: 0;
   }
@@ -324,8 +337,8 @@ input:focus-visible {
   }
 
   .hero-profile-img {
-    width: 84%;
-    max-width: 244px;
+    width: 96%;
+    max-width: 275px;
     margin: 0 0 0 auto;
   }
 
@@ -352,8 +365,8 @@ input:focus-visible {
   }
 
   .hero-profile-img {
-    width: 84%;
-    max-width: 132px;
+    width: 96%;
+    max-width: 148px;
   }
 }
 
