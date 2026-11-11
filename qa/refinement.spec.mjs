@@ -125,8 +125,16 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     ['mobile-600', 600, 900],
     ['mobile-699', 699, 900],
     ['tablet-700', 700, 900],
+    ['tablet-768', 768, 1024],
+    ['tablet-912', 912, 1368],
     ['tablet-1023', 1023, 900],
-    ['desktop-1024', 1024, 900],
+    ['compact-1024', 1024, 900],
+    ['compact-1032', 1032, 1376],
+    ['compact-1112', 1112, 834],
+    ['compact-1199', 1199, 900],
+    ['compact-1279', 1279, 900],
+    ['desktop-1280', 1280, 900],
+    ['desktop-1440', 1440, 900],
     ['landscape-844x390', 844, 390],
   ];
 
@@ -141,13 +149,18 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
       const hero = document.querySelector('.hero-container');
       const heroText = document.querySelector('.hero-text')?.getBoundingClientRect();
       const illustration = document.querySelector('.hero-illustration-container')?.getBoundingClientRect();
+      const portraitElement = document.querySelector('.hero-profile-img');
+      const portrait = portraitElement?.getBoundingClientRect();
       return {
         scrollWidth: root.scrollWidth,
         clientWidth: root.clientWidth,
         heroColumns: hero ? getComputedStyle(hero).gridTemplateColumns : '',
         titleVisible: Boolean(document.querySelector('.hero-title')?.getBoundingClientRect().height),
         heroText: heroText ? {left: heroText.left, right: heroText.right, top: heroText.top, bottom: heroText.bottom} : null,
-        illustration: illustration ? {left: illustration.left, right: illustration.right, top: illustration.top, bottom: illustration.bottom} : null,
+        illustration: illustration ? {left: illustration.left, right: illustration.right, top: illustration.top, bottom: illustration.bottom, width: illustration.width} : null,
+        portrait: portrait ? {left: portrait.left, right: portrait.right, width: portrait.width, height: portrait.height} : null,
+        portraitNaturalRatio: portraitElement?.naturalWidth && portraitElement?.naturalHeight
+          ? portraitElement.naturalWidth / portraitElement.naturalHeight : null,
       };
     });
 
@@ -155,21 +168,35 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     expect(state.titleVisible, `${name} should preserve the feature title`).toBe(true);
     gridColumns.set(name, state.heroColumns);
 
+    expect(state.portrait, `${name} should retain the approved portrait asset`).not.toBeNull();
+    expect(state.portraitNaturalRatio, `${name} portrait aspect ratio should be known`).not.toBeNull();
+    expect(state.portrait.width / state.portrait.height, `${name} portrait must remain undistorted`)
+      .toBeCloseTo(state.portraitNaturalRatio, 2);
+    expect(state.portrait.right, `${name} portrait must remain within viewport`).toBeLessThanOrEqual(state.clientWidth + 1);
+
     if (width <= 699) {
       expect(state.heroText, `${name} should preserve the editorial text column`).not.toBeNull();
       expect(state.illustration, `${name} should preserve the portrait column`).not.toBeNull();
       expect(state.heroText.left, `${name} text should remain left of the portrait`).toBeLessThan(state.illustration.left);
       expect(state.heroText.right, `${name} text and portrait columns should not overlap`).toBeLessThanOrEqual(state.illustration.left + 1);
       expect(state.illustration.right, `${name} portrait should remain within the viewport`).toBeLessThanOrEqual(state.clientWidth + 1);
+      expect(state.portrait.width / state.illustration.width, `${name} portrait should not fill the mobile column`)
+        .toBeLessThanOrEqual(0.86);
+    }
+
+    if (width >= 1024 && width <= 1279) {
+      const intendedCap = Math.max(290, Math.min(380, width * 0.35 - 68));
+      expect(state.portrait.width, `${name} large-tablet portrait should interpolate without an abrupt 380px jump`)
+        .toBeLessThanOrEqual(intendedCap + 2);
     }
 
     await page.screenshot({path: evidencePath(`boundary-${name}.png`), fullPage: false});
   }
 
-  expect(gridColumns.get('mobile-699').trim().split(/\s+/)).toHaveLength(2);
-  expect(gridColumns.get('tablet-700').trim().split(/\s+/)).toHaveLength(2);
-  expect(gridColumns.get('tablet-1023').trim().split(/\s+/)).toHaveLength(2);
-  expect(gridColumns.get('desktop-1024').trim().split(/\s+/)).toHaveLength(2);
+  for (const viewport of ['mobile-699', 'tablet-700', 'tablet-1023', 'compact-1024', 'compact-1032', 'desktop-1280', 'desktop-1440']) {
+    expect(gridColumns.get(viewport).trim().split(/\s+/), `${viewport} should preserve the two-column hero`)
+      .toHaveLength(2);
+  }
 });
 
 test('form processing, success, provider error, and network recovery states are deterministic', async ({page}, testInfo) => {
