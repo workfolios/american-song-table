@@ -127,6 +127,9 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     ['tablet-700', 700, 900],
     ['tablet-768', 768, 1024],
     ['tablet-912', 912, 1368],
+    ['tablet-959', 959, 900],
+    ['tablet-960', 960, 900],
+    ['tablet-980', 980, 900],
     ['tablet-1023', 1023, 900],
     ['compact-1024', 1024, 900],
     ['compact-1032', 1032, 1376],
@@ -180,14 +183,24 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
       expect(state.heroText.left, `${name} text should remain left of the portrait`).toBeLessThan(state.illustration.left);
       expect(state.heroText.right, `${name} text and portrait columns should not overlap`).toBeLessThanOrEqual(state.illustration.left + 1);
       expect(state.illustration.right, `${name} portrait should remain within the viewport`).toBeLessThanOrEqual(state.clientWidth + 1);
-      expect(state.portrait.width / state.illustration.width, `${name} portrait should not fill the mobile column`)
-        .toBeLessThanOrEqual(0.86);
+      expect(state.portrait.width / state.illustration.width, `${name} portrait should remain visually prominent on mobile`)
+        .toBeGreaterThanOrEqual(0.92);
+      expect(state.portrait.width / state.illustration.width, `${name} portrait should not spill out of its column`)
+        .toBeLessThanOrEqual(0.98);
+    }
+
+    if (width >= 960 && width <= 1023) {
+      const expectedCap = Math.max(290, Math.min(345, width * 0.873 - 548));
+      expect(state.portrait.width, `${name} upper-tablet portrait should scale progressively toward the desktop`)
+        .toBeLessThanOrEqual(expectedCap + 2);
     }
 
     if (width >= 1024 && width <= 1279) {
-      const intendedCap = Math.max(290, Math.min(380, width * 0.35 - 68));
-      expect(state.portrait.width, `${name} large-tablet portrait should interpolate without an abrupt 380px jump`)
-        .toBeLessThanOrEqual(intendedCap + 2);
+      const expectedCap = Math.max(345, Math.min(380, width * 0.137 + 204.7));
+      expect(state.portrait.width, `${name} iPad Pro portrait should preserve intermediate visual scale`)
+        .toBeLessThanOrEqual(expectedCap + 2);
+      expect(state.portrait.width, `${name} iPad Pro portrait should be visually prominent`)
+        .toBeGreaterThanOrEqual(expectedCap - 2);
     }
 
     await page.screenshot({path: evidencePath(`boundary-${name}.png`), fullPage: false});
