@@ -154,6 +154,8 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
       const illustration = document.querySelector('.hero-illustration-container')?.getBoundingClientRect();
       const portraitElement = document.querySelector('.hero-profile-img');
       const portrait = portraitElement?.getBoundingClientRect();
+      const title = document.querySelector('.hero-title')?.getBoundingClientRect();
+      const subtitle = document.querySelector('.hero-subtitle')?.getBoundingClientRect();
       return {
         scrollWidth: root.scrollWidth,
         clientWidth: root.clientWidth,
@@ -161,7 +163,9 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
         titleVisible: Boolean(document.querySelector('.hero-title')?.getBoundingClientRect().height),
         heroText: heroText ? {left: heroText.left, right: heroText.right, top: heroText.top, bottom: heroText.bottom} : null,
         illustration: illustration ? {left: illustration.left, right: illustration.right, top: illustration.top, bottom: illustration.bottom, width: illustration.width} : null,
-        portrait: portrait ? {left: portrait.left, right: portrait.right, width: portrait.width, height: portrait.height} : null,
+        portrait: portrait ? {left: portrait.left, top: portrait.top, right: portrait.right, bottom: portrait.bottom, width: portrait.width, height: portrait.height} : null,
+        title: title ? {left: title.left, right: title.right, top: title.top, bottom: title.bottom, height: title.height} : null,
+        subtitle: subtitle ? {left: subtitle.left, right: subtitle.right, top: subtitle.top, bottom: subtitle.bottom} : null,
         portraitNaturalRatio: portraitElement?.naturalWidth && portraitElement?.naturalHeight
           ? portraitElement.naturalWidth / portraitElement.naturalHeight : null,
       };
@@ -175,33 +179,35 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     expect(state.portraitNaturalRatio, `${name} portrait aspect ratio should be known`).not.toBeNull();
     expect(state.portrait.width / state.portrait.height, `${name} portrait must remain undistorted`)
       .toBeCloseTo(state.portraitNaturalRatio, 2);
-    expect(state.portrait.right, `${name} portrait must remain within viewport`).toBeLessThanOrEqual(state.clientWidth + 1);
-
-    if (width <= 699) {
-      expect(state.heroText, `${name} should preserve the editorial text column`).not.toBeNull();
-      expect(state.illustration, `${name} should preserve the portrait column`).not.toBeNull();
-      expect(state.heroText.left, `${name} text should remain left of the portrait`).toBeLessThan(state.illustration.left);
-      expect(state.heroText.right, `${name} text and portrait columns should not overlap`).toBeLessThanOrEqual(state.illustration.left + 1);
-      expect(state.illustration.right, `${name} portrait should remain within the viewport`).toBeLessThanOrEqual(state.clientWidth + 1);
-      expect(state.portrait.width / state.illustration.width, `${name} portrait should remain visually prominent on mobile`)
-        .toBeGreaterThanOrEqual(0.92);
-      expect(state.portrait.width / state.illustration.width, `${name} portrait should not spill out of its column`)
-        .toBeLessThanOrEqual(0.98);
-    }
-
-    if (width >= 960 && width <= 1023) {
-      const expectedCap = Math.max(290, Math.min(345, width * 0.873 - 548));
-      expect(state.portrait.width, `${name} upper-tablet portrait should scale progressively toward the desktop`)
-        .toBeLessThanOrEqual(expectedCap + 2);
-    }
-
-    if (width >= 1024 && width <= 1279) {
-      const expectedCap = Math.max(345, Math.min(380, width * 0.137 + 204.7));
-      expect(state.portrait.width, `${name} iPad Pro portrait should preserve intermediate visual scale`)
-        .toBeLessThanOrEqual(expectedCap + 2);
-      expect(state.portrait.width, `${name} iPad Pro portrait should be visually prominent`)
-        .toBeGreaterThanOrEqual(expectedCap - 2);
-    }
+    // Validate the actually visible ink bounds rather than the original
+    // opaque 1086 x 1448 image canvas used by the source art.
+    const ink = {
+      left: state.portrait.left + state.portrait.width * (297 / 1086),
+      right: state.portrait.left + state.portrait.width * (944 / 1086),
+      top: state.portrait.top + state.portrait.height * (150 / 1448),
+      bottom: state.portrait.top + state.portrait.height * (1371 / 1448),
+      height: state.portrait.height * ((1371 - 150) / 1448),
+      width: state.portrait.width * ((944 - 297) / 1086),
+    };
+    expect(state.illustration, `${name} should preserve the reference-led portrait window`).not.toBeNull();
+    expect(ink.left, `${name} portrait ink should not be cropped on the left`)
+      .toBeGreaterThanOrEqual(state.illustration.left - 1);
+    expect(ink.right, `${name} portrait ink should not be cropped on the right`)
+      .toBeLessThanOrEqual(state.illustration.right + 1);
+    expect(ink.top, `${name} portrait ink should not be cropped at the top`)
+      .toBeGreaterThanOrEqual(state.illustration.top - 1);
+    expect(ink.bottom, `${name} portrait ink should not be cropped at the bottom`)
+      .toBeLessThanOrEqual(state.illustration.bottom + 1);
+    expect(state.illustration.right, `${name} portrait window should stay in the viewport`)
+      .toBeLessThanOrEqual(state.clientWidth + 1);
+    expect(ink.height / state.title.height, `${name} portrait ink should have cover-like scale relative to headline`)
+      .toBeGreaterThanOrEqual(1.65);
+    expect(ink.height / state.title.height, `${name} portrait should not overwhelm headline`)
+      .toBeLessThanOrEqual(3.5);
+    expect(state.heroText.right, `${name} text should not reach the illustration window`)
+      .toBeLessThanOrEqual(state.illustration.left + 1);
+    expect(state.subtitle.right, `${name} subtitle should stay within the text column`)
+      .toBeLessThanOrEqual(state.illustration.left + 1);
 
     await page.screenshot({path: evidencePath(`boundary-${name}.png`), fullPage: false});
   }
