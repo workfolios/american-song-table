@@ -153,7 +153,7 @@ input:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 500px) minmax(280px, 380px);
   justify-content: center;
-  align-items: center;
+  align-items: start;
   column-gap: clamp(56px, 7vw, 96px);
   width: 100%;
   max-width: 1120px;
@@ -169,7 +169,7 @@ input:focus-visible {
   min-width: 0;
   gap: 0;
   margin: 0;
-  padding: 0;
+  padding: clamp(20px, 3.2vw, 48px) 0 0;
 }
 
 .hero-title {
@@ -207,19 +207,29 @@ input:focus-visible {
   font-style: italic;
 }
 
+/* Reference-led portrait window. The approved 1086 x 1448 asset has opaque navy
+   margins; the actual line artwork spans approximately x=297..944, y=150..1371.
+   Frame the original pixels within a padded 720 x 1295 content window
+   (source x=260..980, y=110..1405). No pixels are modified or stretched.
+   The 90%-width / 94%-height artwork coverage governs scale across viewports. */
 .hero-illustration-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  max-width: 380px;
-  margin: 0 auto;
-}
-
-.hero-profile-img {
+  position: relative;
   display: block;
   width: 100%;
   max-width: 380px;
+  aspect-ratio: 720 / 1295;
+  margin: 0 auto;
+  overflow: hidden;
+  background-color: var(--color-page-bg);
+}
+
+.hero-profile-img {
+  position: absolute;
+  display: block;
+  top: -8.494%;
+  left: -36.111%;
+  width: 150.833%;
+  max-width: none;
   height: auto;
   margin: 0;
   opacity: 1;
@@ -239,7 +249,7 @@ input:focus-visible {
     display: grid;
     grid-template-columns: minmax(0, 330px) minmax(220px, 290px);
     justify-content: center;
-    align-items: center;
+    align-items: start;
     column-gap: clamp(28px, 5vw, 44px);
     width: 100%;
     max-width: 780px;
@@ -259,8 +269,7 @@ input:focus-visible {
     line-height: 1.5;
   }
 
-  .hero-illustration-container,
-  .hero-profile-img {
+  .hero-illustration-container {
     max-width: 290px;
   }
 
@@ -276,8 +285,7 @@ input:focus-visible {
     grid-template-columns: minmax(0, 330px) minmax(220px, clamp(290px, calc(87.3vw - 548px), 345px));
   }
 
-  .hero-illustration-container,
-  .hero-profile-img {
+  .hero-illustration-container {
     max-width: clamp(290px, calc(87.3vw - 548px), 345px);
   }
 }
@@ -303,8 +311,8 @@ input:focus-visible {
 
   .hero-container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
+    grid-template-columns: minmax(0, 48fr) minmax(0, 52fr);
+    align-items: start;
     column-gap: clamp(10px, 3vw, 18px);
     row-gap: 0;
     width: 100%;
@@ -315,6 +323,7 @@ input:focus-visible {
 
   .hero-text {
     align-items: flex-start;
+    padding-top: clamp(12px, 3vw, 28px);
   }
 
   .hero-title {
@@ -330,16 +339,9 @@ input:focus-visible {
   }
 
   .hero-illustration-container {
-    justify-content: flex-end;
     min-width: 0;
     max-width: none;
     margin: 0;
-  }
-
-  .hero-profile-img {
-    width: 96%;
-    max-width: 275px;
-    margin: 0 0 0 auto;
   }
 
   .article-chapter {
@@ -364,10 +366,6 @@ input:focus-visible {
     line-height: 1.4;
   }
 
-  .hero-profile-img {
-    width: 96%;
-    max-width: 148px;
-  }
 }
 
 .hero-supporting-line {
