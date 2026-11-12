@@ -133,6 +133,9 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     ['tablet-1023', 1023, 900],
     ['compact-1024', 1024, 900],
     ['compact-1032', 1032, 1376],
+    ['compact-1079', 1079, 900],
+    ['compact-1080', 1080, 900],
+    ['compact-1111', 1111, 900],
     ['compact-1112', 1112, 834],
     ['compact-1199', 1199, 900],
     ['compact-1279', 1279, 900],
@@ -142,6 +145,7 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
   ];
 
   const gridColumns = new Map();
+  const heroPositions = new Map();
 
   for (const [name, width, height] of viewports) {
     await page.setViewportSize({width, height});
@@ -181,6 +185,10 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     expect(state.scrollWidth, `${name} should not overflow horizontally`).toBeLessThanOrEqual(state.clientWidth + 1);
     expect(state.titleVisible, `${name} should preserve the feature title`).toBe(true);
     gridColumns.set(name, state.heroColumns);
+    heroPositions.set(name, {
+      textLeft: state.heroText?.left,
+      illustrationLeft: state.illustration?.left,
+    });
 
     expect(state.portrait, `${name} should retain the approved portrait asset`).not.toBeNull();
     expect(state.portraitNaturalRatio, `${name} portrait aspect ratio should be known`).not.toBeNull();
@@ -239,10 +247,32 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
     await page.screenshot({path: evidencePath(`boundary-${name}.png`), fullPage: false});
   }
 
-  for (const viewport of ['mobile-699', 'tablet-700', 'tablet-1023', 'compact-1024', 'compact-1032', 'desktop-1280', 'desktop-1440']) {
+  for (const viewport of ['mobile-699', 'tablet-700', 'tablet-1023', 'compact-1024', 'compact-1032', 'compact-1111', 'desktop-1280', 'desktop-1440']) {
     expect(gridColumns.get(viewport).trim().split(/\s+/), `${viewport} should preserve the two-column hero`)
       .toHaveLength(2);
   }
+
+  // A 1032px iPad Pro 13 previously inherited a 500px desktop text track,
+  // creating an excessive empty gap and a major visual jump from 1023px.
+  // Validate continuity of both column positions through the exact breakpoint.
+  const tabletEdge = heroPositions.get('tablet-1023');
+  const compactEdge = heroPositions.get('compact-1024');
+  const ipadPro = heroPositions.get('compact-1032');
+  const compactEnd = heroPositions.get('compact-1111');
+  const desktopStart = heroPositions.get('compact-1112');
+
+  expect(Math.abs(tabletEdge.textLeft - compactEdge.textLeft),
+    '1023/1024px headline position should remain continuous').toBeLessThan(16);
+  expect(Math.abs(tabletEdge.illustrationLeft - compactEdge.illustrationLeft),
+    '1023/1024px portrait position should remain continuous').toBeLessThan(16);
+  expect(ipadPro.textLeft, '1032px iPad Pro headline should remain in a balanced editorial column')
+    .toBeGreaterThan(110);
+  expect(ipadPro.textLeft, '1032px iPad Pro headline should not be pushed too far inward')
+    .toBeLessThan(190);
+  expect(Math.abs(compactEnd.textLeft - desktopStart.textLeft),
+    '1111/1112px headline position should transition into desktop smoothly').toBeLessThan(26);
+  expect(Math.abs(compactEnd.illustrationLeft - desktopStart.illustrationLeft),
+    '1111/1112px portrait position should transition into desktop smoothly').toBeLessThan(26);
 });
 
 test('form processing, success, provider error, and network recovery states are deterministic', async ({page}, testInfo) => {

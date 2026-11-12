@@ -308,6 +308,19 @@ input:focus-visible {
   }
 }
 
+/* iPad Pro 13 / 1024px threshold: preserve the well-balanced upper-tablet
+   editorial grid at the 1024px breakpoint, then interpolate into the
+   unchanged wider-desktop grid by 1112px. Portrait framing and typography
+   are inherited exactly as before. */
+@media (min-width: 1024px) and (max-width: 1111px) {
+  .hero-container {
+    grid-template-columns:
+      minmax(0, clamp(330px, calc(193vw - 1646px), 500px))
+      minmax(0, clamp(345px, calc(13.7vw + 204.7px), 380px));
+    column-gap: clamp(44px, calc(35vw - 314px), 75px);
+  }
+}
+
 /* Mobile Hero - 699px and below
    Preserve the approved editorial relationship: feature text left, Karen portrait right. */
 @media (max-width: 699px) {
