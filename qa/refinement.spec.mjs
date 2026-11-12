@@ -228,6 +228,12 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
         .toBeGreaterThanOrEqual(0.64);
       expect(state.subtitle.width, `${name} subtitle should retain a deliberate multiline measure`)
         .toBeLessThanOrEqual(width <= 1023 ? 246 : 376);
+
+      if (width >= 1024 && width <= 1279) {
+        const expectedTextMeasure = Math.max(245, Math.min(375, width * 0.5078 - 275));
+        expect(state.subtitle.width, `${name} subtitle measure should bridge tablet to desktop smoothly`)
+          .toBeLessThanOrEqual(expectedTextMeasure + 1);
+      }
     }
 
     await page.screenshot({path: evidencePath(`boundary-${name}.png`), fullPage: false});
