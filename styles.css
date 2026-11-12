@@ -300,6 +300,12 @@ input:focus-visible {
     margin-left: auto;
     margin-right: 0;
   }
+
+  /* Bridge the 1023/1024px text-measure transition without touching the portrait:
+     preserve the tablet's multiline editorial rhythm, then widen into desktop. */
+  .hero-subtitle {
+    max-width: clamp(245px, calc(50.78vw - 275px), 375px);
+  }
 }
 
 /* Mobile Hero - 699px and below
