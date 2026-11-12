@@ -178,12 +178,12 @@ input:focus-visible {
   align-items: flex-start;
   gap: 0.03em;
   font-family: var(--font-serif);
-  font-size: clamp(4rem, 7vw, 6.25rem);
+  font-size: clamp(5.2rem, 8.2vw, 7.375rem);
   font-weight: 600;
   line-height: 0.94;
   letter-spacing: -0.025em;
   color: var(--color-editorial-ivory);
-  margin: 0 0 32px;
+  margin: 0 0 clamp(30px, 3vw, 40px);
   padding: 0;
 }
 
@@ -197,12 +197,12 @@ input:focus-visible {
 
 .hero-subtitle {
   width: 100%;
-  max-width: 540px;
+  max-width: 375px;
   margin: 0;
   padding: 0;
   font-family: var(--font-serif);
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
-  line-height: 1.55;
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  line-height: 1.5;
   color: var(--color-weathered-parchment);
   font-style: italic;
 }
@@ -257,15 +257,17 @@ input:focus-visible {
     padding: 0 28px;
   }
 
+  /* Let tablet copy counterbalance the reference-framed portrait rather than
+     leaving the illustration dominant. The 1023/1024px title scale remains continuous. */
   .hero-title {
-    font-size: clamp(3.8rem, 8vw, 4.8rem);
-    margin-bottom: 24px;
+    font-size: clamp(4.125rem, 9.2vw, 5.25rem);
+    margin-bottom: clamp(26px, 3vw, 30px);
     line-height: 0.94;
   }
 
   .hero-subtitle {
-    font-size: clamp(1.05rem, 2.5vw, 1.15rem);
-    max-width: 100%;
+    font-size: clamp(1.2rem, 2.9vw, 1.375rem);
+    max-width: 245px;
     line-height: 1.5;
   }
 
@@ -297,6 +299,12 @@ input:focus-visible {
     max-width: clamp(345px, calc(13.7vw + 204.7px), 380px);
     margin-left: auto;
     margin-right: 0;
+  }
+
+  /* Bridge the 1023/1024px text-measure transition without touching the portrait:
+     preserve the tablet's multiline editorial rhythm, then widen into desktop. */
+  .hero-subtitle {
+    max-width: clamp(245px, calc(50.78vw - 275px), 375px);
   }
 }
 

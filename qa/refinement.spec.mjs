@@ -155,7 +155,11 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
       const portraitElement = document.querySelector('.hero-profile-img');
       const portrait = portraitElement?.getBoundingClientRect();
       const title = document.querySelector('.hero-title')?.getBoundingClientRect();
-      const subtitle = document.querySelector('.hero-subtitle')?.getBoundingClientRect();
+      const subtitleElement = document.querySelector('.hero-subtitle');
+      const titleElement = document.querySelector('.hero-title');
+      const subtitle = subtitleElement?.getBoundingClientRect();
+      const headingFont = titleElement ? Number.parseFloat(getComputedStyle(titleElement).fontSize) : null;
+      const subtitleFont = subtitleElement ? Number.parseFloat(getComputedStyle(subtitleElement).fontSize) : null;
       return {
         scrollWidth: root.scrollWidth,
         clientWidth: root.clientWidth,
@@ -165,7 +169,10 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
         illustration: illustration ? {left: illustration.left, right: illustration.right, top: illustration.top, bottom: illustration.bottom, width: illustration.width} : null,
         portrait: portrait ? {left: portrait.left, top: portrait.top, right: portrait.right, bottom: portrait.bottom, width: portrait.width, height: portrait.height} : null,
         title: title ? {left: title.left, right: title.right, top: title.top, bottom: title.bottom, height: title.height} : null,
-        subtitle: subtitle ? {left: subtitle.left, right: subtitle.right, top: subtitle.top, bottom: subtitle.bottom} : null,
+        subtitle: subtitle ? {left: subtitle.left, right: subtitle.right, top: subtitle.top, bottom: subtitle.bottom, width: subtitle.width} : null,
+        headingFont,
+        subtitleFont,
+        textBlockHeight: heroText?.height ?? null,
         portraitNaturalRatio: portraitElement?.naturalWidth && portraitElement?.naturalHeight
           ? portraitElement.naturalWidth / portraitElement.naturalHeight : null,
       };
@@ -208,6 +215,26 @@ test('breakpoint boundaries and landscape orientation remain overflow-safe', asy
       .toBeLessThanOrEqual(state.illustration.left + 1);
     expect(state.subtitle.right, `${name} subtitle should stay within the text column`)
       .toBeLessThanOrEqual(state.illustration.left + 1);
+
+    if (width >= 700) {
+      // Match the Open Graph cover's visual hierarchy without altering the
+      // portrait or reproducing absent cover content in the published hero.
+      expect(state.headingFont, `${name} tablet/desktop headline should have sufficient editorial scale`)
+        .toBeGreaterThanOrEqual(width < 1024 ? 65 : 83);
+      expect(state.subtitleFont, `${name} tablet/desktop subtitle should be legible and prominent`)
+        .toBeGreaterThanOrEqual(20);
+      expect(state.textBlockHeight / (state.illustration.bottom - state.illustration.top),
+        `${name} text block should counterbalance the visible silhouette`)
+        .toBeGreaterThanOrEqual(0.64);
+      expect(state.subtitle.width, `${name} subtitle should retain a deliberate multiline measure`)
+        .toBeLessThanOrEqual(width <= 1023 ? 246 : 376);
+
+      if (width >= 1024 && width <= 1279) {
+        const expectedTextMeasure = Math.max(245, Math.min(375, width * 0.5078 - 275));
+        expect(state.subtitle.width, `${name} subtitle measure should bridge tablet to desktop smoothly`)
+          .toBeLessThanOrEqual(expectedTextMeasure + 1);
+      }
+    }
 
     await page.screenshot({path: evidencePath(`boundary-${name}.png`), fullPage: false});
   }
